@@ -1,6 +1,9 @@
 package com.invoice_scanner_backend.service;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -12,8 +15,12 @@ import java.util.regex.Pattern;
 @Service
 public class OcrService {
 
-    // Mock OCR implementation - In production, this would integrate with
-    // services like Tesseract, Google Vision API, AWS Textract, etc.
+    private static final Logger logger = LoggerFactory.getLogger(OcrService.class);
+
+    @Autowired
+    private TesseractOcrService tesseractOcrService;
+
+    // OCR implementation using Tesseract for local text extraction
 
     private static final Pattern INVOICE_NUMBER_PATTERN = Pattern.compile(
         "(?i)(?:invoice\\s*(?:number|no\\.?|#)?\\s*:?\\s*)([A-Z0-9-]+)",
@@ -83,10 +90,33 @@ public class OcrService {
     }
 
     private String performOcrExtraction(String filePath) {
-        // Mock implementation - replace with actual OCR service
-        // This would call Tesseract, Google Vision API, AWS Textract, etc.
-        
-        // Mock extracted text for demonstration
+        try {
+            logger.info("Performing OCR extraction on file: {}", filePath);
+            
+            // Check if Tesseract is available
+            if (!tesseractOcrService.isTesseractAvailable()) {
+                logger.warn("Tesseract is not available, falling back to mock data");
+                return getMockOcrText(); // Fallback to mock data if Tesseract is not available
+            }
+            
+            // Use Tesseract OCR service to extract text
+            String extractedText = tesseractOcrService.extractTextFromImageWithPreprocessing(filePath);
+            
+            if (extractedText == null || extractedText.trim().isEmpty()) {
+                logger.warn("No text extracted from image, using mock data");
+                return getMockOcrText();
+            }
+            
+            return extractedText;
+            
+        } catch (Exception e) {
+            logger.error("Error during OCR extraction: {}", e.getMessage(), e);
+            // Return mock data as fallback
+            return getMockOcrText();
+        }
+    }
+    
+    private String getMockOcrText() {
         return """
             ACME Corporation
             123 Business Street

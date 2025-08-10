@@ -1,6 +1,29 @@
 # Invoice Scanner Backend
 
-A Spring Boot REST API for invoice processing with OCR capabilities.
+A Spring Boot REST API for invoice processing with Tesseract OCR capabilities.
+
+## Prerequisites
+
+- Java 17 or higher
+- Maven 3.6 or higher  
+- PostgreSQL 12 or higher
+- Tesseract OCR
+
+## Tesseract OCR Setup
+
+### Windows Installation
+
+1. Download Tesseract from: https://github.com/UB-Mannheim/tesseract/wiki
+2. Install to default location: `C:\Program Files\Tesseract-OCR\`
+3. Add Tesseract to your system PATH (optional but recommended)
+4. Verify installation: `tesseract --version`
+
+### Additional Language Packs
+
+For multi-language invoice processing:
+1. Download language data from: https://github.com/tesseract-ocr/tessdata
+2. Place in: `C:\Program Files\Tesseract-OCR\tessdata\`
+3. Update `TESSERACT_LANGUAGE` config (e.g., `eng+fra+deu`)
 
 ## Setup Instructions
 
@@ -15,7 +38,7 @@ A Spring Boot REST API for invoice processing with OCR capabilities.
    - Database connection details
    - JWT secret (generate a secure 256-bit key)
    - Gmail SMTP credentials for email notifications
-   - OCR API credentials
+   - Tesseract OCR paths and settings
 
 ### 2. Database Setup
 
