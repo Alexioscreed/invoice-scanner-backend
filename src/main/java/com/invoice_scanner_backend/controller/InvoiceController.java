@@ -13,6 +13,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import jakarta.validation.Valid;
 import java.time.LocalDate;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -93,6 +94,26 @@ public class InvoiceController {
         String userEmail = authentication.getName();
         List<String> categories = invoiceService.getInvoiceCategories(userEmail);
         return ResponseEntity.ok(categories);
+    }
+
+    @GetMapping("/processing-status/{id}")
+    public ResponseEntity<Map<String, Object>> getProcessingStatus(
+            @PathVariable Long id,
+            Authentication authentication) {
+        String userEmail = authentication.getName();
+        Optional<Invoice> invoice = invoiceService.getInvoiceById(id, userEmail);
+        
+        if (invoice.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+        
+        Map<String, Object> status = new HashMap<>();
+        status.put("id", id);
+        status.put("status", invoice.get().getProcessingStatus().toString());
+        status.put("confidenceScore", invoice.get().getConfidenceScore());
+        status.put("completed", true);
+        
+        return ResponseEntity.ok(status);
     }
 
     @GetMapping("/vendors")
