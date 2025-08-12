@@ -280,7 +280,8 @@ public class InvoiceService {
         if ("csv".equalsIgnoreCase(format)) {
             return exportToCsv(invoices);
         } else if ("excel".equalsIgnoreCase(format)) {
-            return exportToExcel(invoices);
+            // Excel export not implemented - return CSV format instead
+            return exportToCsv(invoices);
         } else {
             throw new RuntimeException("Unsupported export format: " + format);
         }
@@ -337,11 +338,5 @@ public class InvoiceService {
         }
         
         return csv.toString().getBytes();
-    }
-
-    private byte[] exportToExcel(List<Invoice> invoices) {
-        // Implementation for Excel export would go here
-        // This would require Apache POI dependency
-        throw new RuntimeException("Excel export not implemented yet");
     }
 }

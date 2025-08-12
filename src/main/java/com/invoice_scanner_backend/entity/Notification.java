@@ -150,7 +150,6 @@ public class Notification {
         EMAIL_VERIFICATION,
         PASSWORD_RESET,
         SYSTEM_ALERT,
-        INVOICE_UPLOAD,
-        EXPORT_READY
+        INVOICE_UPLOAD
     }
 }

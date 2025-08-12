@@ -76,10 +76,8 @@ public class AuthService {
             "EMAIL_VERIFICATION"
         );
 
-        // Generate JWT token
-        UserDetails userDetails = customUserDetailsService.loadUserByUsername(savedUser.getEmail());
-        String jwt = jwtUtil.generateToken(userDetails);
-
+        // Don't generate JWT token for unverified users
+        // User will get token after email verification and login
         UserDto userDto = new UserDto(
             savedUser.getId(),
             savedUser.getFirstName(),
@@ -90,20 +88,27 @@ public class AuthService {
             savedUser.getUpdatedAt()
         );
 
-        return new AuthResponse(jwt, userDto, "User registered successfully! Please check your email for verification.");
+        return new AuthResponse(null, userDto, "User registered successfully! Please check your email for verification.");
     }
 
     public AuthResponse authenticateUser(LoginRequest loginRequest) {
         try {
+            // First, check if user exists and is verified
+            User user = userRepository.findByEmail(loginRequest.getEmail())
+                .orElseThrow(() -> new RuntimeException("Invalid email or password!"));
+
+            // Check if email is verified before attempting authentication
+            if (!user.isEmailVerified()) {
+                throw new RuntimeException("Please verify your email address before logging in. Check your inbox for verification email.");
+            }
+
+            // Now attempt authentication
             Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
                     loginRequest.getEmail(),
                     loginRequest.getPassword()
                 )
             );
-
-            User user = userRepository.findByEmail(loginRequest.getEmail())
-                .orElseThrow(() -> new RuntimeException("User not found"));
 
             UserDetails userDetails = customUserDetailsService.loadUserByUsername(user.getEmail());
             String jwt = jwtUtil.generateToken(userDetails);

@@ -1,5 +1,7 @@
 package com.invoice_scanner_backend.service;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.SimpleMailMessage;
@@ -8,6 +10,8 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class EmailService {
+
+    private static final Logger logger = LoggerFactory.getLogger(EmailService.class);
 
     @Autowired
     private JavaMailSender mailSender;
@@ -20,28 +24,35 @@ public class EmailService {
 
     public void sendVerificationEmail(String toEmail, String verificationToken) {
         try {
+            logger.info("📧 Attempting to send verification email to: {}", toEmail);
+            logger.info("📧 From email configured as: {}", fromEmail);
+            logger.info("📧 App URL configured as: {}", appUrl);
+            
             SimpleMailMessage message = new SimpleMailMessage();
             message.setFrom(fromEmail);
             message.setTo(toEmail);
             message.setSubject("Invoice Scanner - Email Verification");
             
             String verificationUrl = appUrl + "/verify-email?token=" + verificationToken;
-            String content = "Dear User,\n\n" +
-                    "Thank you for registering with Invoice Scanner!\n\n" +
-                    "Please click the following link to verify your email address:\n" +
-                    verificationUrl + "\n\n" +
-                    "This link will expire in 24 hours.\n\n" +
-                    "If you did not create this account, please ignore this email.\n\n" +
-                    "Best regards,\n" +
+            String content = "Dear User,\\n\\n" +
+                    "Thank you for registering with Invoice Scanner!\\n\\n" +
+                    "Please click the following link to verify your email address:\\n" +
+                    verificationUrl + "\\n\\n" +
+                    "This link will expire in 24 hours.\\n\\n" +
+                    "If you did not create this account, please ignore this email.\\n\\n" +
+                    "Best regards,\\n" +
                     "Invoice Scanner Team";
             
             message.setText(content);
+            
+            logger.info("📧 Sending email via JavaMailSender...");
             mailSender.send(message);
             
-            System.out.println("Verification email sent to: " + toEmail);
+            logger.info("✅ Verification email sent successfully to: {}", toEmail);
         } catch (Exception e) {
-            System.err.println("Failed to send verification email: " + e.getMessage());
-            throw new RuntimeException("Failed to send verification email");
+            logger.error("❌ Failed to send verification email to: {} - Error: {}", toEmail, e.getMessage());
+            logger.error("❌ Full error stack trace: ", e);
+            throw new RuntimeException("Failed to send verification email: " + e.getMessage());
         }
     }
 
@@ -101,28 +112,6 @@ public class EmailService {
             System.out.println("Invoice processing notification sent to: " + toEmail);
         } catch (Exception e) {
             System.err.println("Failed to send invoice processing notification: " + e.getMessage());
-        }
-    }
-
-    public void sendExportReadyNotification(String toEmail, String exportType) {
-        try {
-            SimpleMailMessage message = new SimpleMailMessage();
-            message.setFrom(fromEmail);
-            message.setTo(toEmail);
-            message.setSubject("Invoice Export Ready - " + exportType.toUpperCase());
-            
-            String content = "Dear User,\n\n" +
-                    "Your " + exportType.toUpperCase() + " export is ready for download!\n\n" +
-                    "Please log into your Invoice Scanner dashboard to download your export file.\n\n" +
-                    "Best regards,\n" +
-                    "Invoice Scanner Team";
-            
-            message.setText(content);
-            mailSender.send(message);
-            
-            System.out.println("Export ready notification sent to: " + toEmail);
-        } catch (Exception e) {
-            System.err.println("Failed to send export ready notification: " + e.getMessage());
         }
     }
 }

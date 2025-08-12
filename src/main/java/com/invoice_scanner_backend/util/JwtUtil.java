@@ -7,6 +7,9 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -22,7 +25,19 @@ public class JwtUtil {
     private Long jwtExpiration;
     
     private SecretKey getSigningKey() {
-        return Keys.hmacShaKeyFor(jwtSecret.getBytes());
+        try {
+            // Hash the secret to ensure it's at least 512 bits for HS512
+            MessageDigest digest = MessageDigest.getInstance("SHA-512");
+            byte[] hashedSecret = digest.digest(jwtSecret.getBytes(StandardCharsets.UTF_8));
+            return Keys.hmacShaKeyFor(hashedSecret);
+        } catch (NoSuchAlgorithmException e) {
+            // Fallback: pad the secret to ensure minimum length
+            String paddedSecret = jwtSecret;
+            while (paddedSecret.getBytes(StandardCharsets.UTF_8).length < 64) {
+                paddedSecret += paddedSecret;
+            }
+            return Keys.hmacShaKeyFor(paddedSecret.getBytes(StandardCharsets.UTF_8));
+        }
     }
     
     public String extractUsername(String token) {

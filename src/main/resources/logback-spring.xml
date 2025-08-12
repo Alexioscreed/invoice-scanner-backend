@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
+    
+    <!-- Console Appender with Enhanced Colors for IDE -->
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>
+                %clr(%d{HH:mm:ss.SSS}){blue} 
+                %clr([%thread]){magenta} 
+                %clr(%level){highlight} 
+                %clr([%logger{36}]){cyan} 
+                %clr(➤){green} %msg%n
+            </pattern>
+        </encoder>
+    </appender>
+    
+    <!-- Application Loggers -->
+    <logger name="com.invoice_scanner_backend" level="INFO"/>
+    <logger name="org.springframework.security" level="INFO"/>
+    <logger name="org.springframework.web" level="INFO"/>
+    <logger name="org.hibernate.SQL" level="DEBUG"/>
+    
+    <!-- Root Logger - Console Only -->
+    <root level="INFO">
+        <appender-ref ref="CONSOLE"/>
+    </root>
+</configuration>

@@ -178,15 +178,4 @@ public class NotificationService {
             null
         );
     }
-
-    public void notifyExportReady(User user, String exportType) {
-        createNotification(
-            user,
-            "Export Ready",
-            "Your " + exportType.toUpperCase() + " export is ready for download!",
-            Notification.NotificationType.EXPORT_READY,
-            null,
-            null
-        );
-    }
 }
