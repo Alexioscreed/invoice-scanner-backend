@@ -2,24 +2,37 @@
 <configuration>
     <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
     
-    <!-- Console Appender with Enhanced Colors for IDE -->
+    <!-- Console Appender with Natural Formatting -->
     <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <!-- Filter out noisy log messages -->
+        <filter class="ch.qos.logback.core.filter.EvaluatorFilter">
+            <evaluator>
+                <expression>
+                    return message.contains("HikariPool") || 
+                           message.contains("Connection") ||
+                           message.contains("StatisticsService") ||
+                           message.contains("RequestMappingHandlerMapping");
+                </expression>
+            </evaluator>
+            <onMatch>DENY</onMatch>
+            <onMismatch>ACCEPT</onMismatch>
+        </filter>
         <encoder>
             <pattern>
-                %clr(%d{HH:mm:ss.SSS}){blue} 
-                %clr([%thread]){magenta} 
-                %clr(%level){highlight} 
-                %clr([%logger{36}]){cyan} 
-                %clr(➤){green} %msg%n
+                %clr(%d{HH:mm:ss}){faint} %clr(%5.5level){highlight} %clr(›){faint} %clr(%-20.20logger{0}){cyan} %msg%n
             </pattern>
         </encoder>
     </appender>
     
-    <!-- Application Loggers -->
+    <!-- Application Loggers - Customized for cleaner output -->
     <logger name="com.invoice_scanner_backend" level="INFO"/>
-    <logger name="org.springframework.security" level="INFO"/>
-    <logger name="org.springframework.web" level="INFO"/>
-    <logger name="org.hibernate.SQL" level="DEBUG"/>
+    <logger name="org.springframework" level="WARN"/>
+    <logger name="org.springframework.boot.StartupInfoLogger" level="INFO"/>
+    <logger name="org.springframework.security" level="WARN"/>
+    <logger name="org.springframework.web" level="WARN"/>
+    <logger name="org.hibernate" level="WARN"/>
+    <logger name="org.apache" level="WARN"/>
+    <logger name="springfox" level="WARN"/>
     
     <!-- Root Logger - Console Only -->
     <root level="INFO">

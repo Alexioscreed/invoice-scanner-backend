@@ -2,6 +2,7 @@ package com.invoice_scanner_backend.controller;
 
 import com.invoice_scanner_backend.dto.auth.*;
 import com.invoice_scanner_backend.service.AuthService;
+import com.invoice_scanner_backend.util.LogUtils;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,13 +22,20 @@ public class AuthController {
 
     @PostMapping("/register")
     public ResponseEntity<?> registerUser(@Valid @RequestBody RegisterRequest registerRequest) {
-        logger.info("🔐 Registration attempt for email: {}", registerRequest.getEmail());
+        String username = registerRequest.getEmail();
         try {
+            long startTime = System.currentTimeMillis();
             AuthResponse response = authService.registerUser(registerRequest);
-            logger.info("✅ User registration successful for email: {}", registerRequest.getEmail());
+            long duration = System.currentTimeMillis() - startTime;
+            
+            LogUtils.logAuthEvent(logger, "registration", username, true);
+            LogUtils.logApiSuccess(logger, "POST", "/auth/register", duration);
+            
             return ResponseEntity.ok(response);
         } catch (RuntimeException e) {
-            logger.error("❌ Registration failed for email: {} - Error: {}", registerRequest.getEmail(), e.getMessage());
+            LogUtils.logAuthEvent(logger, "registration", username, false);
+            logger.error("Registration failed: {}", e.getMessage());
+            
             return ResponseEntity.badRequest()
                     .body(new MessageResponse("Error: " + e.getMessage()));
         }
@@ -35,13 +43,20 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<?> authenticateUser(@Valid @RequestBody LoginRequest loginRequest) {
-        logger.info("🔑 Login attempt for email: {}", loginRequest.getEmail());
+        String username = loginRequest.getEmail();
         try {
+            long startTime = System.currentTimeMillis();
             AuthResponse response = authService.authenticateUser(loginRequest);
-            logger.info("✅ Login successful for email: {}", loginRequest.getEmail());
+            long duration = System.currentTimeMillis() - startTime;
+            
+            LogUtils.logAuthEvent(logger, "login", username, true);
+            LogUtils.logApiSuccess(logger, "POST", "/auth/login", duration);
+            
             return ResponseEntity.ok(response);
         } catch (RuntimeException e) {
-            logger.error("❌ Login failed for email: {} - Error: {}", loginRequest.getEmail(), e.getMessage());
+            LogUtils.logAuthEvent(logger, "login", username, false);
+            logger.error("Login failed: {}", e.getMessage());
+            
             return ResponseEntity.badRequest()
                     .body(new MessageResponse("Error: " + e.getMessage()));
         }

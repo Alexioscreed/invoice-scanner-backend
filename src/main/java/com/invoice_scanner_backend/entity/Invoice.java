@@ -97,6 +97,9 @@ public class Invoice {
     @Column(name = "ocr_raw_text", columnDefinition = "TEXT")
     private String ocrRawText;
     
+    @Column(name = "status")
+    private String status = "pending"; // pending, paid, overdue
+    
     @Column(name = "created_at")
     private LocalDateTime createdAt;
     
@@ -328,6 +331,14 @@ public class Invoice {
     
     public void setOcrRawText(String ocrRawText) {
         this.ocrRawText = ocrRawText;
+    }
+    
+    public String getStatus() {
+        return status;
+    }
+    
+    public void setStatus(String status) {
+        this.status = status;
     }
     
     public LocalDateTime getCreatedAt() {

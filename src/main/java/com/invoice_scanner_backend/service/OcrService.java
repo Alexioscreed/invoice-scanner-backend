@@ -1,10 +1,12 @@
 package com.invoice_scanner_backend.service;
 
+import com.invoice_scanner_backend.util.LogUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -91,26 +93,39 @@ public class OcrService {
 
     private String performOcrExtraction(String filePath) {
         try {
-            logger.info("Performing OCR extraction on file: {}", filePath);
+            // Get file info for better logging
+            File file = new File(filePath);
+            String fileName = file.getName();
+            long fileSize = file.length();
+            
+            logger.info("Processing {} ({})", fileName, LogUtils.formatFileSize(fileSize));
+            
+            // Start timing the OCR operation
+            long startTime = System.currentTimeMillis();
             
             // Check if Tesseract is available
             if (!tesseractOcrService.isTesseractAvailable()) {
-                logger.warn("Tesseract is not available, falling back to mock data");
-                return getMockOcrText(); // Fallback to mock data if Tesseract is not available
+                logger.warn("OCR engine unavailable, using simulation data");
+                return getMockOcrText();
             }
             
             // Use Tesseract OCR service to extract text
             String extractedText = tesseractOcrService.extractTextFromImageWithPreprocessing(filePath);
             
             if (extractedText == null || extractedText.trim().isEmpty()) {
-                logger.warn("No text extracted from image, using mock data");
+                logger.warn("No text extracted from image");
                 return getMockOcrText();
             }
+            
+            // Calculate duration and log success
+            long duration = System.currentTimeMillis() - startTime;
+            int charCount = extractedText.length();
+            logger.info("OCR completed in {}ms: {} characters extracted", duration, charCount);
             
             return extractedText;
             
         } catch (Exception e) {
-            logger.error("Error during OCR extraction: {}", e.getMessage(), e);
+            logger.error("OCR failed: {}", e.getMessage());
             // Return mock data as fallback
             return getMockOcrText();
         }
