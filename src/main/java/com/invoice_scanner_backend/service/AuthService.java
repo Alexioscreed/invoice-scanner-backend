@@ -55,29 +55,24 @@ public class AuthService {
         user.setEmail(registerRequest.getEmail());
         user.setPassword(passwordEncoder.encode(registerRequest.getPassword()));
         
-        // Generate verification token
-        String verificationToken = UUID.randomUUID().toString();
-        user.setVerificationToken(verificationToken);
+        // Set email as verified by default (no email verification needed)
+        user.setEmailVerified(true);
+        user.setVerificationToken(null);
 
         User savedUser = userRepository.save(user);
 
-        // Send verification email
-        try {
-            emailService.sendVerificationEmail(savedUser.getEmail(), verificationToken);
-        } catch (Exception e) {
-            System.err.println("Failed to send verification email: " + e.getMessage());
-        }
-
-        // Create notification
+        // Create welcome notification
         notificationService.createNotification(
             savedUser,
             "Welcome to Invoice Scanner!",
-            "Please verify your email address to complete registration.",
-            "EMAIL_VERIFICATION"
+            "Your account has been created successfully. You can now start uploading and processing invoices.",
+            "ACCOUNT_CREATED"
         );
 
-        // Don't generate JWT token for unverified users
-        // User will get token after email verification and login
+        // Generate JWT token for immediate login
+        UserDetails userDetails = customUserDetailsService.loadUserByUsername(savedUser.getEmail());
+        String jwt = jwtUtil.generateToken(userDetails);
+
         UserDto userDto = new UserDto(
             savedUser.getId(),
             savedUser.getFirstName(),
@@ -88,21 +83,12 @@ public class AuthService {
             savedUser.getUpdatedAt()
         );
 
-        return new AuthResponse(null, userDto, "User registered successfully! Please check your email for verification.");
+        return new AuthResponse(jwt, userDto, "User registered successfully! You are now logged in.");
     }
 
     public AuthResponse authenticateUser(LoginRequest loginRequest) {
         try {
-            // First, check if user exists and is verified
-            User user = userRepository.findByEmail(loginRequest.getEmail())
-                .orElseThrow(() -> new RuntimeException("Invalid email or password!"));
-
-            // Check if email is verified before attempting authentication
-            if (!user.isEmailVerified()) {
-                throw new RuntimeException("Please verify your email address before logging in. Check your inbox for verification email.");
-            }
-
-            // Now attempt authentication
+            // Authenticate user credentials
             Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
                     loginRequest.getEmail(),
@@ -110,6 +96,11 @@ public class AuthService {
                 )
             );
 
+            // Get user from database
+            User user = userRepository.findByEmail(loginRequest.getEmail())
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+            // Generate JWT token
             UserDetails userDetails = customUserDetailsService.loadUserByUsername(user.getEmail());
             String jwt = jwtUtil.generateToken(userDetails);
 

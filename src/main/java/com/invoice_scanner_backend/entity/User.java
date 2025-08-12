@@ -85,7 +85,8 @@ public class User implements UserDetails {
     // UserDetails implementation
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return Collections.emptyList();
+        // Grant ROLE_USER authority to all users to fix Access Denied on protected endpoints
+        return Collections.singletonList(new org.springframework.security.core.authority.SimpleGrantedAuthority("ROLE_USER"));
     }
     
     @Override
